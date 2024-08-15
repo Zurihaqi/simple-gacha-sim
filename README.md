@@ -3,7 +3,7 @@
 * Create database
 
 ## Postman Docs
-* Link: 
+* Link: https://documenter.getpostman.com/view/20277894/2sA3s7iofW
 
 ## Incomplete Features (Todos)
 * The gacha system
