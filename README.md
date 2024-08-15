@@ -7,4 +7,6 @@
 
 ## Incomplete Features (Todos)
 * The gacha system
+* Tiers, Prizes seeder
+* RBAC
 * Profile system (get own profile/inventory)
