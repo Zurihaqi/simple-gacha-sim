@@ -22,4 +22,6 @@ public class PrizeDTO {
     private Long tierId;
     private String tierName;
     private Double dropRate;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer amount;
 }

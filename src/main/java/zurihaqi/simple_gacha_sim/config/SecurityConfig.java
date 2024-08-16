@@ -32,7 +32,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/auth/***").permitAll()
-                        .requestMatchers("/api/v1/refresh-token/***").permitAll()
+                        .requestMatchers("/api/v1/refresh-token/refresh").permitAll()
                         .requestMatchers("/api/v1/inventories/***").hasRole("ADMIN")
                         .requestMatchers("/api/v1/users/***").hasRole("ADMIN")
                         .requestMatchers("/api/vi/tiers/***").hasRole("ADMIN")

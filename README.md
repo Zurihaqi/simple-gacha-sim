@@ -7,7 +7,7 @@
 
 ## Incomplete Features (Todos)
 * Complete the docs
-* InventoryPrizes separate conjunction model
+* ~~InventoryPrizes separate conjunction model~~
 * ~~The gacha system~~
 * ~~Tiers, Prizes seeder~~
 * ~~RBAC~~

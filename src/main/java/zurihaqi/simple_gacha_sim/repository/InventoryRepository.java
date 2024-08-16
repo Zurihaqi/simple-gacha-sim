@@ -16,8 +16,6 @@ public interface InventoryRepository {
 
     Optional<Inventory> findByUserId(Long userId);
 
-    Optional<Inventory> findByIdWithPrizes(Long id);
-
     Inventory save(Inventory inventory);
 
     void deleteById(Long id);

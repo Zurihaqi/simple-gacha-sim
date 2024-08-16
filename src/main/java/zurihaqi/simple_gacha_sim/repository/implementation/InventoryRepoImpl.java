@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import zurihaqi.simple_gacha_sim.model.Inventory;
 import zurihaqi.simple_gacha_sim.repository.InventoryRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,16 +31,11 @@ public class InventoryRepoImpl implements InventoryRepository {
     public Page<Inventory> findAll(Pageable pageable) {
         String sql = "SELECT * FROM inventories";
         Query query = entityManager.createNativeQuery(sql, Inventory.class);
-
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 
         List<Inventory> inventories = query.getResultList();
-
-        String countSql = "SELECT COUNT(*) FROM inventories";
-        Query countQuery = entityManager.createNativeQuery(countSql);
-        long total = ((Number) countQuery.getSingleResult()).longValue();
-
+        long total = (long) entityManager.createNativeQuery("SELECT COUNT(*) FROM inventories").getSingleResult();
         return new PageImpl<>(inventories, pageable, total);
     }
 
@@ -49,10 +44,9 @@ public class InventoryRepoImpl implements InventoryRepository {
         String sql = "SELECT * FROM inventories WHERE id = :id";
         Query query = entityManager.createNativeQuery(sql, Inventory.class);
         query.setParameter("id", id);
-
         try {
             return Optional.ofNullable((Inventory) query.getSingleResult());
-        } catch (EmptyResultDataAccessException | NoResultException e) {
+        } catch (NoResultException e) {
             return Optional.empty();
         }
     }
@@ -62,36 +56,31 @@ public class InventoryRepoImpl implements InventoryRepository {
         String sql = "SELECT * FROM inventories WHERE user_id = :userId";
         Query query = entityManager.createNativeQuery(sql, Inventory.class);
         query.setParameter("userId", userId);
+        List<Inventory> inventories = query.getResultList();
 
-        try {
-            return Optional.ofNullable((Inventory) query.getSingleResult());
-        } catch (EmptyResultDataAccessException | NoResultException e) {
+        if (inventories.isEmpty()) {
             return Optional.empty();
-        }
-    }
-
-    @Override
-    public Optional<Inventory> findByIdWithPrizes(Long id) {
-        String sql = "SELECT i.* FROM inventories i " +
-                "LEFT JOIN inventory_prizes ip ON i.id = ip.inventory_id " +
-                "LEFT JOIN prizes p ON ip.prize_id = p.id " +
-                "WHERE i.id = :id";
-        Query query = entityManager.createNativeQuery(sql, Inventory.class);
-        query.setParameter("id", id);
-
-        try {
-            return Optional.ofNullable((Inventory) query.getSingleResult());
-        } catch (EmptyResultDataAccessException | NoResultException e) {
-            return Optional.empty();
+        } else {
+            return Optional.of(inventories.get(0));
         }
     }
 
     @Override
     public Inventory save(Inventory inventory) {
         if (inventory.getId() == null) {
-            entityManager.persist(inventory);
+            String sql = "INSERT INTO inventories (created_at, updated_at, user_id) VALUES (:createdAt, :updatedAt, :userId)";
+            Query query = entityManager.createNativeQuery(sql);
+            query.setParameter("createdAt", inventory.getCreatedAt());
+            query.setParameter("updatedAt", inventory.getUpdatedAt());
+            query.setParameter("userId", inventory.getUser().getId());
+            query.executeUpdate();
         } else {
-            inventory = entityManager.merge(inventory);
+            String sql = "UPDATE inventories SET updated_at = :updatedAt, user_id = :userId WHERE id = :id";
+            Query query = entityManager.createNativeQuery(sql);
+            query.setParameter("updatedAt", inventory.getUpdatedAt());
+            query.setParameter("userId", inventory.getUser().getId());
+            query.setParameter("id", inventory.getId());
+            query.executeUpdate();
         }
         return inventory;
     }

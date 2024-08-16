@@ -1,10 +1,11 @@
 package zurihaqi.simple_gacha_sim.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import zurihaqi.simple_gacha_sim.dto.PrizeDTO;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity(name = "inventories")
@@ -28,11 +29,7 @@ public class Inventory {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @ManyToMany
-    @JoinTable(
-            name = "inventory_prizes",
-            joinColumns = @JoinColumn(name = "inventory_id"),
-            inverseJoinColumns = @JoinColumn(name = "prize_id")
-    )
-    private Set<Prize> prizes;
+    @OneToMany(mappedBy = "inventory", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    private Set<InventoryPrize> inventoryPrizes = new HashSet<>();
 }

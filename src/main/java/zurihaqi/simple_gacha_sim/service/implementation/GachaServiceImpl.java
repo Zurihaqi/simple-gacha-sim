@@ -9,39 +9,70 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import zurihaqi.simple_gacha_sim.dto.PrizeDTO;
 import zurihaqi.simple_gacha_sim.model.Inventory;
+import zurihaqi.simple_gacha_sim.model.InventoryPrize;
 import zurihaqi.simple_gacha_sim.model.Prize;
 import zurihaqi.simple_gacha_sim.model.User;
+import zurihaqi.simple_gacha_sim.repository.InventoryPrizeRepository;
 import zurihaqi.simple_gacha_sim.repository.InventoryRepository;
 import zurihaqi.simple_gacha_sim.repository.PrizeRepository;
 import zurihaqi.simple_gacha_sim.service.GachaService;
 import zurihaqi.simple_gacha_sim.utils.ObjectMapper;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
 public class GachaServiceImpl implements GachaService {
     private final PrizeRepository prizeRepository;
     private final InventoryRepository inventoryRepository;
+    private final InventoryPrizeRepository inventoryPrizeRepository;
 
     @Override
     @Transactional
     public PrizeDTO pullOnePrize() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<PrizeDTO> prizes = prizeRepository.findAll().stream().map(ObjectMapper::toPrizeDTO).toList();
-        double[] dropRates = prizes.stream().mapToDouble(PrizeDTO::getDropRate).toArray();
 
-        PrizeDTO pulledPrize = getPrizeByDropRate(prizes, dropRates);
-        Prize prizeEntity = prizeRepository.findById(pulledPrize.getId())
+        List<PrizeDTO> prizeDTOs = prizeRepository.findAll().stream().map(ObjectMapper::toPrizeDTO).toList();
+        double[] dropRates = prizeDTOs.stream().mapToDouble(PrizeDTO::getDropRate).toArray();
+
+        PrizeDTO pulledPrizeDTO = getPrizeByDropRate(prizeDTOs, dropRates);
+
+        Prize pulledPrize = prizeRepository.findById(pulledPrizeDTO.getId())
                 .orElseThrow(() -> new RuntimeException("Prize not found"));
 
         Inventory inventory = inventoryRepository.findByUserId(user.getId())
-                .orElse(Inventory.builder().user(user).prizes(new HashSet<>()).createdAt(new Date()).build());
+                .orElseGet(() -> {
+                    Inventory newInventory = Inventory.builder()
+                            .user(user)
+                            .createdAt(new Date())
+                            .updatedAt(new Date())
+                            .build();
+                    return inventoryRepository.save(newInventory);
+                });
 
-        inventory.getPrizes().add(prizeEntity);
-        inventoryRepository.save(inventory);
+        InventoryPrize inventoryPrize = inventory.getInventoryPrizes().stream()
+                .filter(ip -> ip.getPrize().equals(pulledPrize))
+                .findFirst()
+                .orElse(null);
 
-        return pulledPrize;
+        if (inventoryPrize == null) {
+            inventoryPrize = InventoryPrize.builder()
+                    .inventory(inventory)
+                    .prize(pulledPrize)
+                    .amount(1)
+                    .createdAt(new Date())
+                    .updatedAt(new Date())
+                    .build();
+            inventory.getInventoryPrizes().add(inventoryPrize);
+        } else {
+            inventoryPrize.setAmount(inventoryPrize.getAmount() + 1);
+            inventoryPrize.setUpdatedAt(new Date());
+        }
+
+        inventoryPrizeRepository.save(inventoryPrize);
+
+        return pulledPrizeDTO;
     }
 
     @Override
@@ -53,39 +84,59 @@ public class GachaServiceImpl implements GachaService {
 
         List<PrizeDTO> pulledPrizes = new ArrayList<>();
         Inventory inventory = inventoryRepository.findByUserId(user.getId())
-                .orElse(Inventory.builder().user(user).prizes(new HashSet<>()).createdAt(new Date()).build());
+                .orElseGet(() -> {
+                    Inventory newInventory = Inventory.builder()
+                            .user(user)
+                            .createdAt(new Date())
+                            .updatedAt(new Date())
+                            .build();
+                    return inventoryRepository.save(newInventory);
+                });
 
         for (int i = 0; i < count; i++) {
             PrizeDTO pulledPrize = getPrizeByDropRate(prizes, dropRates);
             Prize prizeEntity = prizeRepository.findById(pulledPrize.getId())
                     .orElseThrow(() -> new RuntimeException("Prize not found"));
 
-            pulledPrizes.add(pulledPrize);
-            inventory.getPrizes().add(prizeEntity);
-        }
+            InventoryPrize inventoryPrize = inventory.getInventoryPrizes().stream()
+                    .filter(ip -> ip.getPrize().equals(prizeEntity))
+                    .findFirst()
+                    .orElse(null);
 
-        inventoryRepository.save(inventory);
+            if (inventoryPrize == null) {
+                inventoryPrize = InventoryPrize.builder()
+                        .inventory(inventory)
+                        .prize(prizeEntity)
+                        .amount(1)
+                        .createdAt(new Date())
+                        .updatedAt(new Date())
+                        .build();
+                inventory.getInventoryPrizes().add(inventoryPrize);
+            } else {
+                inventoryPrize.setAmount(inventoryPrize.getAmount() + 1);
+                inventoryPrize.setUpdatedAt(new Date());
+            }
+
+            inventoryPrizeRepository.save(inventoryPrize);
+
+            pulledPrizes.add(pulledPrize);
+        }
 
         return new PageImpl<>(pulledPrizes, pageable, count);
     }
 
-
     private PrizeDTO getPrizeByDropRate(List<PrizeDTO> prizes, double[] dropRates) {
-        double totalWeight = 0.0;
-        for (double rate : dropRates) {
-            totalWeight += rate;
-        }
+        double totalDropRate = Arrays.stream(dropRates).sum();
+        double randomValue = new Random().nextDouble() * totalDropRate;
+        double cumulativeProbability = 0.0;
 
-        double randomValue = Math.random() * totalWeight;
-
-        for (int i = 0; i < prizes.size(); i++) {
-            randomValue -= dropRates[i];
-            if (randomValue <= 0.0) {
+        for (int i = 0; i < dropRates.length; i++) {
+            cumulativeProbability += dropRates[i];
+            if (randomValue <= cumulativeProbability) {
                 return prizes.get(i);
             }
         }
 
-        return prizes.get(0);
+        return prizes.get(prizes.size() - 1);
     }
-
 }

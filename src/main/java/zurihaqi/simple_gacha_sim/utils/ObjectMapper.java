@@ -6,6 +6,10 @@ import zurihaqi.simple_gacha_sim.dto.UserDTO;
 import zurihaqi.simple_gacha_sim.model.Inventory;
 import zurihaqi.simple_gacha_sim.model.Prize;
 import zurihaqi.simple_gacha_sim.model.User;
+import zurihaqi.simple_gacha_sim.model.InventoryPrize;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ObjectMapper {
     public static UserDTO toUserDTO(User user) {
@@ -34,15 +38,31 @@ public class ObjectMapper {
     }
 
     public static InventoryDTO toInventoryDTO(Inventory inventory) {
+        Map<Prize, Integer> prizeAmountMap = inventory.getInventoryPrizes().stream()
+                .collect(Collectors.toMap(
+                        InventoryPrize::getPrize,
+                        InventoryPrize::getAmount
+                ));
+
         return InventoryDTO.builder()
                 .id(inventory.getId())
                 .createdAt(inventory.getCreatedAt())
                 .updatedAt(inventory.getUpdatedAt())
                 .userId(inventory.getUser().getId())
                 .ownerName(inventory.getUser().getActualUsername())
-                .prizes(inventory.getPrizes().stream()
-                        .map(ObjectMapper::toPrizeDTO)
-                        .toList())
+                .prizes(prizeAmountMap.entrySet().stream()
+                        .map(entry -> PrizeDTO.builder()
+                                .id(entry.getKey().getId())
+                                .name(entry.getKey().getName())
+                                .description(entry.getKey().getDescription())
+                                .imageUrl(entry.getKey().getImageUrl())
+                                .createdAt(entry.getKey().getCreatedAt())
+                                .updatedAt(entry.getKey().getUpdatedAt())
+                                .tierId(entry.getKey().getTier().getId())
+                                .tierName(entry.getKey().getTier().getName())
+                                .amount(entry.getValue())
+                                .build())
+                        .collect(Collectors.toList()))
                 .build();
     }
 }
