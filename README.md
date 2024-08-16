@@ -6,7 +6,9 @@
 * Link: https://documenter.getpostman.com/view/20277894/2sA3s7iofW
 
 ## Incomplete Features (Todos)
-* The gacha system
-* Tiers, Prizes seeder
-* RBAC
-* Profile system (get own profile/inventory)
+* Complete the docs
+* InventoryPrizes conjunction model
+* ~~The gacha system~~
+* ~~Tiers, Prizes seeder~~
+* ~~RBAC~~
+* ~~Profile system (get own profile/inventory)~~

@@ -78,6 +78,14 @@ public class PrizeRepoImpl implements PrizeRepository {
     }
 
     @Override
+    public List<Prize> saveAll(List<Prize> prizes) {
+        for (Prize prize : prizes) {
+            save(prize);
+        }
+        return prizes;
+    }
+
+    @Override
     public void deleteById(Long id) {
         String sql = "DELETE FROM prizes WHERE id = :id";
         Query query = entityManager.createNativeQuery(sql);

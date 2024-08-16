@@ -12,5 +12,7 @@ public interface UserService {
 
     UserDTO getOneUser(Long id);
 
+    UserDTO getOwnProfile();
+
     void deleteUser(Long id);
 }

@@ -96,6 +96,18 @@ public class TierRepoImpl implements TierRepository {
     }
 
     @Override
+    public List<Tier> saveAll(List<Tier> tiers) {
+        for (Tier tier : tiers) {
+            if (tier.getId() == null) {
+                entityManager.persist(tier);
+            } else {
+                entityManager.merge(tier);
+            }
+        }
+        return tiers;
+    }
+
+    @Override
     public void deleteById(Long id) {
         Tier tier = entityManager.find(Tier.class, id);
         if (tier != null) {

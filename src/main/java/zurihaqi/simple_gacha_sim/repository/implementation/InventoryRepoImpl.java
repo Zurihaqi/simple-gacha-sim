@@ -58,11 +58,16 @@ public class InventoryRepoImpl implements InventoryRepository {
     }
 
     @Override
-    public List<Inventory> findByUserId(Long userId) {
+    public Optional<Inventory> findByUserId(Long userId) {
         String sql = "SELECT * FROM inventories WHERE user_id = :userId";
         Query query = entityManager.createNativeQuery(sql, Inventory.class);
         query.setParameter("userId", userId);
-        return query.getResultList();
+
+        try {
+            return Optional.ofNullable((Inventory) query.getSingleResult());
+        } catch (EmptyResultDataAccessException | NoResultException e) {
+            return Optional.empty();
+        }
     }
 
     @Override

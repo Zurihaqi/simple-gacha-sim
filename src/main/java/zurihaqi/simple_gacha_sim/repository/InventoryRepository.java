@@ -14,7 +14,7 @@ public interface InventoryRepository {
 
     Optional<Inventory> findById(Long id);
 
-    List<Inventory> findByUserId(Long userId);
+    Optional<Inventory> findByUserId(Long userId);
 
     Optional<Inventory> findByIdWithPrizes(Long id);
 

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import zurihaqi.simple_gacha_sim.dto.UserDTO;
 import zurihaqi.simple_gacha_sim.model.User;
@@ -42,6 +43,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO getOneUser(Long id) {
         return ObjectMapper.toUserDTO(userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found")));
+    }
+
+    @Override
+    public UserDTO getOwnProfile() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ObjectMapper.toUserDTO(user);
     }
 
     @Override

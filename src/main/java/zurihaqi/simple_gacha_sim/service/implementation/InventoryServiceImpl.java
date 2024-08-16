@@ -5,10 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import zurihaqi.simple_gacha_sim.dto.InventoryDTO;
 import zurihaqi.simple_gacha_sim.dto.PrizeDTO;
 import zurihaqi.simple_gacha_sim.model.Inventory;
+import zurihaqi.simple_gacha_sim.model.User;
 import zurihaqi.simple_gacha_sim.repository.InventoryRepository;
 import zurihaqi.simple_gacha_sim.repository.PrizeRepository;
 import zurihaqi.simple_gacha_sim.repository.UserRepository;
@@ -57,6 +59,12 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public InventoryDTO getOneInventory(Long id) {
         return ObjectMapper.toInventoryDTO(inventoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Inventory not found")));
+    }
+
+    @Override
+    public InventoryDTO getOwnInventory() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ObjectMapper.toInventoryDTO(inventoryRepository.findByUserId(user.getId()).orElseThrow(() -> new RuntimeException("Inventory not found")));
     }
 
     @Override

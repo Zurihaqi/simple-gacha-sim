@@ -19,6 +19,8 @@ public interface PrizeRepository {
 
     Prize save(Prize prize);
 
+    List<Prize> saveAll(List<Prize> prizes);
+
     void deleteById(Long id);
 
     long count();

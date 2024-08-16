@@ -18,6 +18,8 @@ public interface TierRepository {
 
     Tier save(Tier tier);
 
+    List<Tier> saveAll(List<Tier> tiers);
+
     void deleteById(Long id);
 
     long count();

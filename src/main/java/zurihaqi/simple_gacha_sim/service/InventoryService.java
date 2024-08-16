@@ -13,5 +13,7 @@ public interface InventoryService {
 
     InventoryDTO getOneInventory(Long id);
 
+    InventoryDTO getOwnInventory();
+
     void deleteInventoryById(Long id);
 }
