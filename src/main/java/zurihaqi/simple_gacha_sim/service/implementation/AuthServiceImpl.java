@@ -8,8 +8,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import zurihaqi.simple_gacha_sim.dto.AuthDTO;
+import zurihaqi.simple_gacha_sim.model.Inventory;
 import zurihaqi.simple_gacha_sim.model.RefreshToken;
 import zurihaqi.simple_gacha_sim.model.User;
+import zurihaqi.simple_gacha_sim.repository.InventoryRepository;
 import zurihaqi.simple_gacha_sim.repository.UserRepository;
 import zurihaqi.simple_gacha_sim.security.JWTService;
 import zurihaqi.simple_gacha_sim.service.AuthService;
@@ -24,6 +26,7 @@ import static zurihaqi.simple_gacha_sim.utils.validation.AuthValidation.validate
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepo;
+    private final InventoryRepository inventoryRepo;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JWTService jwtService;
@@ -76,6 +79,14 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         user = userRepo.save(user);
+
+        Inventory inventory = Inventory.builder()
+                .user(user)
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+        inventoryRepo.save(inventory);
+
         return AuthDTO.builder()
                 .username(user.getActualUsername())
                 .email(user.getEmail())

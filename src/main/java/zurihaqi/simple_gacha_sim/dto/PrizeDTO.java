@@ -16,11 +16,14 @@ public class PrizeDTO {
     private String name;
     private String description;
     private String imageUrl;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Date createdAt;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Date updatedAt;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long tierId;
     private String tierName;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Double dropRate;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer amount;
