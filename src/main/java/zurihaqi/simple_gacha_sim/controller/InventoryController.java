@@ -27,24 +27,4 @@ public class InventoryController {
     public ResponseEntity<?> getOneInventory(@PathVariable Long id) {
         return ResponseEntity.ok(inventoryService.getOneInventory(id));
     }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateInventory(@PathVariable Long id, @RequestBody InventoryDTO inventoryDTO) {
-        return ResponseEntity.ok(inventoryService.updateInventory(id, inventoryDTO));
-    }
-
-    @PostMapping
-    public ResponseEntity<?> createInventory(@RequestBody InventoryDTO inventoryDTO) {
-        return ResponseEntity.ok(inventoryService.createInventory(inventoryDTO));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteInventory(@PathVariable Long id) {
-        inventoryService.deleteInventoryById(id);
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "Success");
-        response.put("message", "Inventory deleted");
-
-        return new ResponseEntity<>(response, HttpStatus.OK);
-    }
 }
