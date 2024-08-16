@@ -30,20 +30,21 @@ public class AdminSeeder implements CommandLineRunner {
         String adminPassword = "admin1234";
         if(userRepository.findByEmail(adminEmail).isPresent()) return;
 
-        inventoryRepository.save(
-                Inventory.builder()
-                        .createdAt(new Date())
-                        .updatedAt(null)
-                        .build()
-        );
-
-        userRepository.save(
+        User admin = userRepository.save(
                 User.builder()
                         .email(adminEmail)
                         .username("Admin")
                         .password(passwordEncoder.encode(adminPassword))
                         .role(User.Role.ADMIN)
                         .createdAt(new Date())
+                        .build()
+        );
+
+        inventoryRepository.save(
+                Inventory.builder()
+                        .user(admin)
+                        .createdAt(new Date())
+                        .updatedAt(null)
                         .build()
         );
     }
